@@ -1,0 +1,102 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Random;
+
+/**
+ * Created by Szymon on 02.04.2017.
+ */
+public class Main {
+
+    public static void  main(String[] args) throws IOException {
+
+        int[] N = {16, 64, 256};
+        int[] keyLen = {40, 64, 128};
+
+        for(int n : N )
+            for(int len : keyLen) {
+                //RC4.drop = len * n;
+                RC4.RC_4(n, n, len);
+            }
+    }
+
+    private static class RC4 {
+
+        private final static int INT_MAX = 1200000;
+        private final static String ABS_PATH = "C:\\Users\\Szymon\\Desktop\\";
+        private static int[] S;
+        private static int size;
+        private static int drop;
+
+        private static void RC_4(int N, int T, int keySize) throws IOException {
+            S = null;
+            size = keySize;
+
+            /* First Step */
+            KSA(N,T);
+
+            /* Second Step */
+            PRGA(N);
+        }
+
+        private static void KSA(int N, int T) {
+
+            int i, j, L;
+            int[] key = initKey(size);
+            S = new int[N];
+            for (i = 0; i < S.length; i++) {
+                S[i] = i;
+            }
+
+            j = 0;
+            L = key.length;
+            for (i = 0; i <= T; i++) {
+                j = (j + S[i % N] + key[i % L]) % N;
+                swap(S, i % N, j % N);
+            }
+        }
+
+        private static void PRGA(int N) throws IOException {
+            String path = ABS_PATH + "RC4_N" + N + "_K" + size + ".txt";
+            PrintWriter pw = new PrintWriter(path);
+
+            int Z;
+            int i = 0;
+            int j = 0;
+
+
+            for (int required = 0; required < INT_MAX; required++) {
+                i = (i + 1) % N;
+                j = (j + S[i]) % N;
+                swap(S, i, j);
+                Z = S[(S[i] + S[j]) % N];
+
+                if(drop == 0)
+                    pw.println(Z);
+                else
+                    drop--;
+            }
+        }
+
+        private static void swap(int[] S, int i, int j) {
+
+            int tmp = S[i];
+            S[i] = S[j];
+            S[j] = tmp;
+        }
+
+        private static int[] initKey(int size) {
+
+            /* Key Size allowed = (1,256) */
+            Random rnd = new Random();
+            int[] key = new int[size];
+
+            for (int i = 0; i < size; i++) {
+                key[i] = rnd.nextInt(256);  //(0-255)
+            }
+
+            return key;
+        }
+    }
+}
